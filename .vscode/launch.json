@@ -1,0 +1,18 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - WindowProgram",
+            "request": "launch",
+            "mainClass": "WindowProgram",
+            "projectName": "DT050A-Laboration-1_1e3073f7"
+        },
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - Program",
+            "request": "launch",
+            "mainClass": "Program",
+            "projectName": "DT050A-Laboration-1_1e3073f7"
+        }
+    ]
+}

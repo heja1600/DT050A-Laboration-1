@@ -4,7 +4,10 @@ import javax.swing.JFrame;
 
 import se.miun.distsys.GroupCommuncation;
 import se.miun.distsys.listeners.ChatMessageListener;
+import se.miun.distsys.listeners.LoginListener;
+import se.miun.distsys.listeners.LogoutListener;
 import se.miun.distsys.messages.ChatMessage;
+import se.miun.models.User;
 
 import javax.swing.JButton;
 import javax.swing.JTextPane;
@@ -17,7 +20,7 @@ import javax.swing.JScrollPane;
 
 //Skeleton code for Distributed systems 9hp, DT050A
 
-public class WindowProgram implements ChatMessageListener, ActionListener {
+public class WindowProgram implements ChatMessageListener, LoginListener, LogoutListener, ActionListener {
 
 	JFrame frame;
 	JTextPane txtpnChat = new JTextPane();
@@ -77,12 +80,22 @@ public class WindowProgram implements ChatMessageListener, ActionListener {
 	@Override
 	public void actionPerformed(ActionEvent event) {
 		if (event.getActionCommand().equalsIgnoreCase("send")) {
-			gc.sendChatMessage(txtpnMessage.getText());
+			gc.broadcastMessage(new ChatMessage(txtpnMessage.getText()));
 		}		
 	}
 	
 	@Override
 	public void onIncomingChatMessage(ChatMessage chatMessage) {	
 		txtpnChat.setText(chatMessage.chat + "\n" + txtpnChat.getText());				
+	}
+
+	@Override
+	public void onUserLogout(User user) {
+
+	}
+
+	@Override
+	public void onUserLogin(User User) {
+
 	}
 }
