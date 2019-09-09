@@ -8,7 +8,6 @@ import se.miun.distsys.listeners.Listeners;
 import se.miun.distsys.messages.ChatMessage;
 import se.miun.models.User;
 
-import javax.annotation.PreDestroy;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JTextPane;
@@ -122,6 +121,5 @@ public class WindowProgram implements Listeners{
 		loggedInUsers = new JList<Set<String>>(model);
 		System.out.println("currently" + model.size() + " users.");
 		frame.add(loggedInUsers);
-	}	
-
+	}
 }

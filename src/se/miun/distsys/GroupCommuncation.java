@@ -98,9 +98,8 @@ public class GroupCommuncation {
 			{
 				if(addUser(user))
 				{
-					System.out.println("found new user" + user.getAddress());
+					System.out.println(loggedInUsers.size());
 				}
-				
 				listeners.onSendLoginListener(user);
 			}
 			else if(message instanceof LogoutMessage)

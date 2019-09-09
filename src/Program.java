@@ -1,14 +1,9 @@
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
 import se.miun.distsys.GroupCommuncation;
-import se.miun.distsys.listeners.ChatMessageListener;
 import se.miun.distsys.listeners.Listeners;
-import se.miun.distsys.listeners.LoginListener;
-import se.miun.distsys.listeners.LogoutListener;
-import se.miun.distsys.listeners.SendLoginListener;
 import se.miun.distsys.messages.ChatMessage;
 import se.miun.models.User;
 
