@@ -5,14 +5,16 @@ import java.io.InputStreamReader;
 
 import se.miun.distsys.GroupCommuncation;
 import se.miun.distsys.listeners.ChatMessageListener;
+import se.miun.distsys.listeners.Listeners;
 import se.miun.distsys.listeners.LoginListener;
 import se.miun.distsys.listeners.LogoutListener;
+import se.miun.distsys.listeners.SendLoginListener;
 import se.miun.distsys.messages.ChatMessage;
 import se.miun.models.User;
 
 //Skeleton code for Distributed systems 9hp, DT050A
 
-public class Program implements ChatMessageListener, LoginListener, LogoutListener, ActionListener {
+public class Program implements Listeners {
 
 	boolean runProgram = true;
 
@@ -24,9 +26,7 @@ public class Program implements ChatMessageListener, LoginListener, LogoutListen
 
 	public Program() {
 		gc = new GroupCommuncation();
-		gc.setLogoutListenerListener(this);
-		gc.setChatMessageListener(this);
-		gc.setLoginListener(this);
+		gc.setListeners(this);
 		System.out.println("Group Communcation Started");
 
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
@@ -65,5 +65,13 @@ public class Program implements ChatMessageListener, LoginListener, LogoutListen
 		System.out.println("User joined groupchat:" + user.getAddress());
 	}
 
+	@Override
+	public void onSendLoginListener(User user) {
+		// TODO Auto-generated method stub
 
+	}
+	private void setUsers()
+	{
+		
+	}
 }

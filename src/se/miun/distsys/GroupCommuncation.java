@@ -4,24 +4,23 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
-import java.net.SocketAddress;
-import java.util.ArrayList;
+import java.util.HashMap;
+
 import se.miun.models.User;
-import java.util.List;
+import java.util.Map;
 
-import com.sun.javafx.collections.MappingChange.Map;
+import javax.annotation.PreDestroy;
 
-import se.miun.distsys.listeners.ChatMessageListener;
-import se.miun.distsys.listeners.LoginListener;
-import se.miun.distsys.listeners.LogoutListener;
+import se.miun.distsys.listeners.Listeners;
 import se.miun.distsys.messages.ChatMessage;
 import se.miun.distsys.messages.Message;
 import se.miun.distsys.messages.MessageSerializer;
+import se.miun.distsys.messages.SendLoginMessage;
 import se.miun.distsys.messages.LoginMessage;
 import se.miun.distsys.messages.LogoutMessage;
 
 public class GroupCommuncation {
-	Map<String, User> loggedInUsers;
+	Map<String, User> loggedInUsers = new HashMap<String, User>();
 	
 	private int datagramSocketPort = 9999; //You need to change this!
 	// private int loggedInSocketPort = 80;		
@@ -30,16 +29,13 @@ public class GroupCommuncation {
 	MessageSerializer messageSerializer = new MessageSerializer();
 	
 	//Listeners
-	ChatMessageListener chatMessageListener = null;
-	LoginListener loginListener = null;
-	LogoutListener logoutListener = null;
+	Listeners listeners = null;
 	
 	
 	public GroupCommuncation() {			
 		try {
 			runGroupCommuncation = true;				
 			datagramSocket = new MulticastSocket(datagramSocketPort);
-						
 			RecieveThread rt = new RecieveThread();
 			rt.start();
 			
@@ -72,27 +68,51 @@ public class GroupCommuncation {
 					Message recievedMessage = messageSerializer.deserializeMessage(packetData);	
 
 					handleMessage(recievedMessage, new User(recievePacket.getSocketAddress(), recievePacket.getAddress()));
+
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 				
 			}
 		}
-		
+		private boolean addUser(User user)
+		{
+			if(!loggedInUsers.containsValue(user.getAddress().toString())) 
+			{
+				loggedInUsers.put(user.getAddress().toString(), user);
+				return true;
+			}
+			else return false;
+		}
 		
 		private void handleMessage (Message message, User user) {
 			if(message instanceof LoginMessage)
 			{
-				loginListener.onUserLogin(user);
+				listeners.onUserLogin(user);
+
+				addUser(user);
+
+				sendMessage(new SendLoginMessage(), user.getAddress());
+			}
+			else if(message instanceof SendLoginMessage)
+			{
+				if(addUser(user))
+				{
+					System.out.println("found new user" + user.getAddress());
+				}
+				
+				listeners.onSendLoginListener(user);
 			}
 			else if(message instanceof LogoutMessage)
 			{
-				logoutListener.onUserLogout(user);
+				loggedInUsers.remove(user.getAddress().toString());
+
+				listeners.onUserLogout(user);
 			}
 			else if(message instanceof ChatMessage) {				
 				ChatMessage chatMessage = (ChatMessage) message;				
-				if(chatMessageListener != null){
-					chatMessageListener.onIncomingChatMessage(chatMessage);
+				if(listeners != null){
+					listeners.onIncomingChatMessage(chatMessage);
 				}
 			} else {				
 				System.out.println("Unknown message type");
@@ -103,35 +123,40 @@ public class GroupCommuncation {
 	public <T extends Message> void broadcastMessage(T message) 
     {
 		try {
+			sendMessage(message, InetAddress.getByName("255.255.255.255"));
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	public <T extends Message> void sendMessage(T message, InetAddress inetAddress)
+	{
+		try {
 			byte[] sendData = messageSerializer.serializeMessage(message);
-			DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, InetAddress.getByName("255.255.255.255"), datagramSocketPort);
+			DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, inetAddress, datagramSocketPort);
 			datagramSocket.send(sendPacket);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-	public void setLoginListener(LoginListener listener)
-    {
-		this.loginListener = listener;
-	}
-
-	public void setLogoutListenerListener(LogoutListener listener)
-    {
-		this.logoutListener = listener;
-	}
-	
-	public void setChatMessageListener(ChatMessageListener listener)
-    {
-		this.chatMessageListener = listener;
-	}
-
 	private void login() 
 	{	
 		broadcastMessage(new LoginMessage());
 	}
+	@PreDestroy
 	private void logout()
 	{
 		broadcastMessage(new LogoutMessage());
 	}
-	
+	public void setListeners(Listeners listeners)
+	{
+		this.listeners = listeners;
+	}
+
+	public Map<String, User> getUsers()
+	{
+		return this.loggedInUsers;
+	}
 }
