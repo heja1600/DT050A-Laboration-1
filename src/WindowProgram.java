@@ -92,12 +92,13 @@ public class WindowProgram implements Listeners{
 	
 	@Override
 	public void onIncomingChatMessage(ChatMessage chatMessage) {	
-		txtpnChat.setText(chatMessage.chat + "\n" + txtpnChat.getText());				
+		txtpnChat.setText(txtpnChat.getText()+ "\n" +chatMessage.chat );				
 	}
 
 
 	@Override
 	public void onUserLogout(User user) {
+		print("User left the groupchat:" + user.getAddress());
 		System.out.println("User left the groupchat:" + user.getAddress());
 		setUsers();
 	}
@@ -105,6 +106,7 @@ public class WindowProgram implements Listeners{
 	@Override
 	public void onUserLogin(User user) {
 		System.out.println("User joined groupchat:" + user.getAddress());
+		print("User joined groupchat:" + user.getAddress());
 		setUsers();
 	}
 
@@ -119,7 +121,13 @@ public class WindowProgram implements Listeners{
 		model = new DefaultListModel<Set<String>>();
 		model.addElement(gc.getUsers().keySet());
 		loggedInUsers = new JList<Set<String>>(model);
+		print("currently" + model.size() + " users.");
 		System.out.println("currently" + model.size() + " users.");
 		frame.add(loggedInUsers);
+	}
+
+	private void print(String message) 
+	{
+		txtpnChat.setText(txtpnChat.getText()+ "\n" + message);
 	}
 }

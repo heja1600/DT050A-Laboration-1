@@ -22,7 +22,7 @@ import se.miun.distsys.messages.LogoutMessage;
 public class GroupCommuncation {
 	Map<String, User> loggedInUsers = new HashMap<String, User>();
 	
-	private int datagramSocketPort = 9999; //You need to change this!
+	private int datagramSocketPort = 2525; //You need to change this!
 	// private int loggedInSocketPort = 80;		
 	DatagramSocket datagramSocket = null;	
 	boolean runGroupCommuncation = true;	
@@ -68,6 +68,7 @@ public class GroupCommuncation {
 					Message recievedMessage = messageSerializer.deserializeMessage(packetData);	
 
 					handleMessage(recievedMessage, new User(recievePacket.getSocketAddress(), recievePacket.getAddress()));
+				
 
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -136,7 +137,7 @@ public class GroupCommuncation {
 			byte[] sendData = messageSerializer.serializeMessage(message);
 			DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, inetAddress, datagramSocketPort);
 			datagramSocket.send(sendPacket);
-		} catch (Exception e) {
+		} catch (Exception e) { 
 			e.printStackTrace();
 		}
 	}
@@ -147,6 +148,7 @@ public class GroupCommuncation {
 	@PreDestroy
 	private void logout()
 	{
+		System.out.println("broadcastning logoutMessage before exiting");
 		broadcastMessage(new LogoutMessage());
 	}
 	public void setListeners(Listeners listeners)
