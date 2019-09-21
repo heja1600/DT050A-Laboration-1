@@ -1,6 +1,7 @@
 import java.awt.event.ActionEvent;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.lang.management.ManagementFactory;
 
 import se.miun.distsys.GroupCommuncation;
 import se.miun.distsys.listeners.Listeners;
@@ -16,6 +17,7 @@ public class Program implements Listeners {
 	GroupCommuncation gc = null;
 
 	public static void main(String[] args) {
+		ManagementFactory.getRuntimeMXBean().getName();
 		Program program = new Program();
 	}
 

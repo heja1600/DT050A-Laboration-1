@@ -20,8 +20,6 @@ import se.miun.distsys.messages.LoginMessage;
 import se.miun.distsys.messages.LogoutMessage;
 
 public class GroupCommuncation {
-	Map<String, User> loggedInUsers = new HashMap<String, User>();
-	
 	private int datagramSocketPort = 2525; //You need to change this!
 	// private int loggedInSocketPort = 80;		
 	DatagramSocket datagramSocket = null;	
@@ -31,8 +29,8 @@ public class GroupCommuncation {
 	//Listeners
 	Listeners listeners = null;
 	
-	
-	public GroupCommuncation() {			
+	public GroupCommuncation(User user)
+	{
 		try {
 			runGroupCommuncation = true;				
 			datagramSocket = new MulticastSocket(datagramSocketPort);
@@ -50,8 +48,8 @@ public class GroupCommuncation {
 	}
 	
 
-	class RecieveThread extends Thread{
-		
+	class RecieveThread extends Thread {
+		private User user;
 		@Override
 		public void run() {
 			byte[] buffer = new byte[65536];		
@@ -76,14 +74,20 @@ public class GroupCommuncation {
 				
 			}
 		}
-		private boolean addUser(User user)
+		public void setUser(User user) {	this.user = user; }
+		private void addUser(User user)
 		{
-			if(!loggedInUsers.containsValue(user.getAddress().toString())) 
-			{
-				loggedInUsers.put(user.getAddress().toString(), user);
-				return true;
-			}
-			else return false;
+			this.user.getVectorClock().put(user.getUserId(), 0);
+
+
+
+			// this.addUser(user)
+			// if(!loggedInUsers.containsValue(user.getAddress().toString())) 
+			// {
+			// 	loggedInUsers.put(user.getAddress().toString(), user);
+			// 	return true;
+			// }
+			// else return false;
 		}
 		
 		private void handleMessage (Message message, User user) {
