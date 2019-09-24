@@ -24,3 +24,9 @@ You will be given a basic skeleton for the program which you will need to extend
 
 
 Vector order completed
+
+
+
+Number of bots could be choosen in BaseProgram.java. 
+
+You should use the WindowProgram.java not the Program.java

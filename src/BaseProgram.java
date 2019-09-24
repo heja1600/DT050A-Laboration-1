@@ -9,7 +9,7 @@ abstract public class BaseProgram implements Listeners {
 
 	protected GroupCommuncation gc = null; 
   List<BotProgram> bots = new ArrayList<>();
-  private int botInstances = 5;
+  private int botInstances = 10;
   protected Logger logger = new Logger();
   
   public void initGroupCommunication() {

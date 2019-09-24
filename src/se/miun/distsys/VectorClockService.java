@@ -36,7 +36,7 @@ public class VectorClockService {
     }
 
     public void checkChatMessages(User user) {
-        
+        System.out.println("Currently " + chatMessages.size() + " in queue");
         int expectedVectorOrder = calculateVectorOrder(user.vectorClock) + 1;
         
         for(int i = 0; i < chatMessages.size(); i++) {
@@ -48,7 +48,7 @@ public class VectorClockService {
                 return;
             }
             // if out of order;
-            else if(chatVectorOrder < expectedVectorOrder) {
+            else if(chatVectorOrder < expectedVectorOrder - 1) {
                 ChatMessage outOfOrder = chatMessages.get(i);
                 chatMessages.remove(i);
                 messageOutOfOrder.onOutOfOrder(outOfOrder);
