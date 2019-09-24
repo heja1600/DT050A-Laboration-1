@@ -6,4 +6,4 @@ public interface Listeners extends LoginListener,
                                     LogoutListener, 
                                     ChatMessageListener, 
                                     SendLoginListener, 
-                                    ActionListener { }
+                                    ActionListener{ }

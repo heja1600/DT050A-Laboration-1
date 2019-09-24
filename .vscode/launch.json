@@ -2,6 +2,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "CodeLens (Launch) - BotProgram",
+            "request": "launch",
+            "mainClass": "BotProgram",
+            "projectName": "DT050A-Laboration-1_1e3073f7"
+        },
+        {
+            "type": "java",
             "name": "CodeLens (Launch) - ThreadedUsers",
             "request": "launch",
             "mainClass": "ThreadedUsers",

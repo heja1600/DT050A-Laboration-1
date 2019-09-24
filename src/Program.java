@@ -1,7 +1,6 @@
 import java.awt.event.ActionEvent;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.lang.management.ManagementFactory;
 
 import se.miun.distsys.GroupCommuncation;
 import se.miun.distsys.listeners.Listeners;
@@ -10,21 +9,21 @@ import se.miun.models.User;
 
 //Skeleton code for Distributed systems 9hp, DT050A
 
-public class Program implements Listeners {
-
-	boolean runProgram = true;
-
-	GroupCommuncation gc = null;
+public class Program extends BaseProgram implements Listeners {
+    private boolean runProgram = true;
 
 	public static void main(String[] args) {
-		ManagementFactory.getRuntimeMXBean().getName();
 		Program program = new Program();
 	}
 
+
+
 	public Program() {
-		gc = new GroupCommuncation();
-		gc.setListeners(this);
-		System.out.println("Group Communcation Started");
+		initGroupCommunication();
+
+
+		
+		addBots();
 
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 		while (runProgram) {
@@ -32,7 +31,7 @@ public class Program implements Listeners {
 
 				System.out.println("Write message to send: ");
 				String chat = br.readLine();
-				gc.broadcastMessage(new ChatMessage(chat));
+				gc.broadcastChatMessage(chat);
 				Thread.sleep(1000);
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -41,9 +40,10 @@ public class Program implements Listeners {
 		gc.shutdown();
 	}
 
+
 	@Override
 	public void onIncomingChatMessage(ChatMessage chatMessage) {
-		System.out.println("Incoming chat message: " + chatMessage.chat);
+		System.out.println(getUserInfo(chatMessage.user)+ ":"+ chatMessage.chat);
 	}
 
 	@Override
@@ -53,22 +53,17 @@ public class Program implements Listeners {
 
 	@Override
 	public void onUserLogout(User user) {
-		System.out.println("User left the groupchat:" + user.getAddress());
-
+		System.out.println("User left the groupchat:" + getUserInfo(user));
 	}
 
 	@Override
 	public void onUserLogin(User user) {
-		System.out.println("User joined groupchat:" + user.getAddress());
+		System.out.println("User joined groupchat:" + getUserInfo(user));
 	}
 
 	@Override
 	public void onSendLoginListener(User user) {
 		// TODO Auto-generated method stub
 
-	}
-	private void setUsers()
-	{
-		
-	}
+	}	
 }

@@ -6,7 +6,9 @@ import javax.swing.JList;
 import se.miun.distsys.GroupCommuncation;
 import se.miun.distsys.listeners.Listeners;
 import se.miun.distsys.messages.ChatMessage;
+import se.miun.distsys.messages.Message;
 import se.miun.models.User;
+import se.miun.models.VectorClock;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -19,17 +21,13 @@ import java.util.Set;
 import javax.swing.JScrollPane;
 
 
-public class WindowProgram implements Listeners{
+public class WindowProgram extends BaseProgram implements Listeners{
 
 	private JFrame frame;
 	private JTextPane txtpnChat = new JTextPane();
 	private JTextPane txtpnMessage = new JTextPane();
-	private DefaultListModel<Set<String>> model;
-	private JList<Set<String>> loggedInUsers;
-	
-	GroupCommuncation gc = null;	
-	
-
+	private DefaultListModel<Set<Integer>> model;
+	private JList<Set<Integer>> loggedInUsers;
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {	
@@ -45,14 +43,13 @@ public class WindowProgram implements Listeners{
 
 	public WindowProgram() {
 		initializeFrame();
-		gc = new GroupCommuncation();	
-		gc.setListeners(this);	
-		System.out.println("Group Communcation Started");
+		initGroupCommunication();
+		addBots();
 	}
-
+ 
 	private void initializeFrame() {
 		frame = new JFrame();
-		frame.setBounds(100, 100, 450, 300);
+		frame.setBounds(100, 100, 450, 900);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.getContentPane().setLayout(new GridLayout(0, 1, 0, 0));
 		
@@ -71,42 +68,36 @@ public class WindowProgram implements Listeners{
 		
 		frame.getContentPane().add(btnSendChatMessage);
 
-
-
-		
 		frame.addWindowListener(new java.awt.event.WindowAdapter() {
 	        public void windowClosing(WindowEvent winEvt) {
-	            gc.shutdown();
+				gc.shutdown();
+				terminateBots();
 	        }
 		});
-		
-		
 	}
 
 	@Override
 	public void actionPerformed(ActionEvent event) {
 		if (event.getActionCommand().equalsIgnoreCase("send")) {
-			gc.broadcastMessage(new ChatMessage(txtpnMessage.getText()));
+            gc.broadcastChatMessage(txtpnMessage.getText());
 		}		
 	}
 	
 	@Override
 	public void onIncomingChatMessage(ChatMessage chatMessage) {	
-		txtpnChat.setText(txtpnChat.getText()+ "\n" +chatMessage.chat );				
+		appendToTextChat(getUserInfo(chatMessage.user) + ": " + chatMessage.chat );
+		logger.log(chatMessage);
 	}
-
 
 	@Override
 	public void onUserLogout(User user) {
-		print("User left the groupchat:" + user.getAddress());
-		System.out.println("User left the groupchat:" + user.getAddress());
+		appendToTextChat("User left the groupchat:" + user.userId);
 		setUsers();
 	}
 
 	@Override
 	public void onUserLogin(User user) {
-		System.out.println("User joined groupchat:" + user.getAddress());
-		print("User joined groupchat:" + user.getAddress());
+		appendToTextChat("User joined groupchat:" + user.userId);
 		setUsers();
 	}
 
@@ -118,16 +109,14 @@ public class WindowProgram implements Listeners{
 	private void setUsers()
 	{
 		if(loggedInUsers != null) frame.remove(loggedInUsers);
-		model = new DefaultListModel<Set<String>>();
-		model.addElement(gc.getUsers().keySet());
-		loggedInUsers = new JList<Set<String>>(model);
-		print("currently" + model.size() + " users.");
-		System.out.println("currently" + model.size() + " users.");
+		model = new DefaultListModel<Set<Integer>>();
+		model.addElement(gc.getUser().vectorClock.keySet());
+		loggedInUsers = new JList<Set<Integer>>(model);
+		System.out.println("currently" + gc.getUser().vectorClock.keySet().size() + " users.");
 		frame.add(loggedInUsers);
 	}
-
-	private void print(String message) 
-	{
-		txtpnChat.setText(txtpnChat.getText()+ "\n" + message);
+	private void appendToTextChat(String chat) {
+		txtpnChat.setText( txtpnChat.getText() +  "\n" + chat);	
+		txtpnChat.setCaretPosition(txtpnChat.getDocument().getLength());
 	}
 }

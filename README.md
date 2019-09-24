@@ -4,7 +4,7 @@
 Netbeans project 
 
 
-
+# Laboration 1
 
 In this first laboration you are expected to learn how to program UDP broadcast socket programming in Java, as well as understand the basis for this whole laboratory work.
 
@@ -17,3 +17,10 @@ You will be given a basic skeleton for the program which you will need to extend
 [x] When another client receives the Leave message, it shall remove the user fromt its list of active clients.
 [x] Remember that the newly joined client should also get a list of all active client from the older clients.
 [x] Adjust the user interface according to your own taste.
+
+
+
+# Laboration 2
+
+
+Vector order completed
