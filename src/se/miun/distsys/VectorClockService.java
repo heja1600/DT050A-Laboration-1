@@ -36,7 +36,6 @@ public class VectorClockService {
     }
 
     public void checkChatMessages(User user) {
-        System.out.println("Currently " + chatMessages.size() + " in queue");
         int expectedVectorOrder = calculateVectorOrder(user.vectorClock) + 1;
         
         for(int i = 0; i < chatMessages.size(); i++) {
@@ -57,6 +56,14 @@ public class VectorClockService {
         }
     }
 
+    public void removeUser(User user) {
+        for(int i = 0; i < chatMessages.size(); i++) {
+            if(chatMessages.get(i).user.userId == user.userId) {
+                chatMessages.remove(i);
+                i--;
+            }
+        }
+    }
     public static <T extends Message> void incremenetMessageIndex(T message) {
         int increment = message.user.vectorClock.get(message.user.userId) + 1;
         message.user.vectorClock.put(message.user.userId, increment);

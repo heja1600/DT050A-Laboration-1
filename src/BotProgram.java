@@ -64,4 +64,10 @@ public class BotProgram extends Thread implements Listeners {
         // TODO Auto-generated method stub
 
     }
+
+    @Override
+    public void onOutOfOrder(ChatMessage chatMessage) {
+        // TODO Auto-generated method stub
+
+    }
 }

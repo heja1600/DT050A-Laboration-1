@@ -3,14 +3,18 @@ import java.util.List;
 
 import se.miun.distsys.GroupCommuncation;
 import se.miun.distsys.listeners.Listeners;
+import se.miun.distsys.messages.Message;
+import se.miun.models.OutOfOrder;
 import se.miun.models.User;
 
 abstract public class BaseProgram implements Listeners {
 
 	protected GroupCommuncation gc = null; 
   List<BotProgram> bots = new ArrayList<>();
-  private int botInstances = 10;
+  private int botInstances = 5;
   protected Logger logger = new Logger();
+
+  protected OutOfOrder outOfOrder = new OutOfOrder();
   
   public void initGroupCommunication() {
     gc = new GroupCommuncation();
@@ -28,4 +32,13 @@ abstract public class BaseProgram implements Listeners {
   protected void terminateBots() {
     for(BotProgram bot: bots)  bot.botIsRunning = false;
   }
+
+  protected <T extends Message> void addOutOfOrder(T message) {
+    if(!outOfOrder.containsKey(message.user.userId))
+    {
+      outOfOrder.put(message.user.userId, 0);
+    }
+    outOfOrder.put(message.user.userId, outOfOrder.get(message.user.userId) + 1);
+  }
+
 }

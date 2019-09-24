@@ -12,9 +12,8 @@ public class User implements Serializable {
     public InetAddress address; 
     public int userId;
     public VectorClock vectorClock;
-    
     public User() { this(null, null); }
-
+    
     public User(SocketAddress socketAddress, InetAddress inetAddress)
     {
         this.socketAddress = socketAddress;

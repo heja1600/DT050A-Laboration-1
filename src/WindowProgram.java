@@ -4,6 +4,7 @@ import javax.swing.JFrame;
 import javax.swing.JList;
 
 import se.miun.distsys.GroupCommuncation;
+import se.miun.distsys.VectorClockService;
 import se.miun.distsys.listeners.Listeners;
 import se.miun.distsys.messages.ChatMessage;
 import se.miun.distsys.messages.Message;
@@ -26,8 +27,8 @@ public class WindowProgram extends BaseProgram implements Listeners{
 	private JFrame frame;
 	private JTextPane txtpnChat = new JTextPane();
 	private JTextPane txtpnMessage = new JTextPane();
-	private DefaultListModel<Set<Integer>> model;
-	private JList<Set<Integer>> loggedInUsers;
+	private JTextPane userList = new JTextPane();
+
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {	
@@ -67,6 +68,8 @@ public class WindowProgram extends BaseProgram implements Listeners{
 		btnSendChatMessage.setActionCommand("send");
 		
 		frame.getContentPane().add(btnSendChatMessage);
+		userList.setEditable(false);
+		frame.getContentPane().add(userList);
 
 		frame.addWindowListener(new java.awt.event.WindowAdapter() {
 	        public void windowClosing(WindowEvent winEvt) {
@@ -87,6 +90,7 @@ public class WindowProgram extends BaseProgram implements Listeners{
 	public void onIncomingChatMessage(ChatMessage chatMessage) {	
 		appendToTextChat(getUserInfo(chatMessage.user) + ": " + chatMessage.chat );
 		logger.log(chatMessage);
+		setUsers();
 	}
 
 	@Override
@@ -103,20 +107,30 @@ public class WindowProgram extends BaseProgram implements Listeners{
 
 	@Override
 	public void onSendLoginListener(User user) {
-		// TODO Auto-generated method stub
-
+		appendToTextChat("User excists in groupchat:" + user.userId);
+		setUsers();
 	}
 	private void setUsers()
 	{
-		if(loggedInUsers != null) frame.remove(loggedInUsers);
-		model = new DefaultListModel<Set<Integer>>();
-		model.addElement(gc.getUser().vectorClock.keySet());
-		loggedInUsers = new JList<Set<Integer>>(model);
-		System.out.println("currently" + gc.getUser().vectorClock.keySet().size() + " users.");
-		frame.add(loggedInUsers);
+		String tmp = "";
+		for (VectorClock.Entry<Integer, Integer> entry : gc.getUser().vectorClock.entrySet()) {
+			tmp += "user:";
+			tmp += entry.getKey();
+			tmp += ", sent (" + gc.getUser().vectorClock.get(entry.getKey()) + ")";
+			tmp += outOfOrder.containsKey(entry.getKey()) ? ", failed (" + outOfOrder.get(entry.getKey()) + ")" : "";
+			tmp += "\n";
+		}
+		userList.setText(tmp);
+		
 	}
 	private void appendToTextChat(String chat) {
-		txtpnChat.setText( txtpnChat.getText() +  "\n" + chat);	
+		txtpnChat.setText(txtpnChat.getText() +  "\n" + chat);	
 		txtpnChat.setCaretPosition(txtpnChat.getDocument().getLength());
+	}
+
+	@Override
+	public void onOutOfOrder(ChatMessage chatMessage) {
+		addOutOfOrder(chatMessage);
+		setUsers();
 	}
 }

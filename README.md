@@ -30,3 +30,6 @@ Vector order completed
 Number of bots could be choosen in BaseProgram.java. 
 
 You should use the WindowProgram.java not the Program.java
+
+Messages from each users and the failed messages (messages out of order) is displayed in WindowProgra.java
+![image](https://user-images.githubusercontent.com/43444902/65538820-778d6b80-df08-11e9-8e20-988bbeca264a.png)

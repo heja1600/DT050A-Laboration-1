@@ -65,5 +65,11 @@ public class Program extends BaseProgram implements Listeners {
 	public void onSendLoginListener(User user) {
 		// TODO Auto-generated method stub
 
-	}	
+	}
+
+    @Override
+    public void onOutOfOrder(ChatMessage chatMessage) {
+        // TODO Auto-generated method stub
+        addOutOfOrder(chatMessage);
+    }
 }

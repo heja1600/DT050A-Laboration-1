@@ -8,6 +8,7 @@ import java.util.HashMap;
 
 import javax.annotation.PreDestroy;
 
+import javafx.util.Pair;
 import se.miun.distsys.listeners.Listeners;
 import se.miun.distsys.listeners.MessageAccepted;
 import se.miun.distsys.listeners.MessageOutOfOrder;
@@ -78,21 +79,29 @@ public class GroupCommuncation implements MessageAccepted, MessageOutOfOrder {
 			}
 		}
 		private void handleMessage (Message message) {
+
 			if(message instanceof LoginMessage) {
-				listeners.onUserLogin(message.user);
-				addUser(message.user);
-				broadcastMessage(new SendLoginMessage(user));
+				if(!isSelf(message.user)) { // dont login yourself, youre already logged in :)
+					System.out.println(user.userId + "added" + message.user.userId);
+					addUser(message.user);
+					listeners.onUserLogin(message.user);
+					broadcastMessage(new SendLoginMessage(user));
+				}
+			}
+			else if(message instanceof SendLoginMessage) {
+				// if you dont contain the user and its not yourself :)
+				if(!user.vectorClock.containsKey(message.user.userId) && !isSelf(message.user)) {
+					addUser(message.user);
+					listeners.onSendLoginListener(message.user);
+				}
 			}
 
 			// to prohibit unregistred user to send messages
 			else if(user.vectorClock.containsKey(message.user.userId)) {
-				if(message instanceof SendLoginMessage) {
-					if(!GroupCommuncation.this.user.vectorClock.containsKey(message.user.userId)) {
-						addUser(user);
-					}
-				}
-				else if(message instanceof LogoutMessage) {
-					removeUser(user);
+		
+				if(message instanceof LogoutMessage) {
+					removeUser(message.user);
+					listeners.onUserLogout(message.user);
 				}
 				
 				else if(message instanceof ChatMessage) {
@@ -138,6 +147,7 @@ public class GroupCommuncation implements MessageAccepted, MessageOutOfOrder {
 		initUser();
 		broadcastMessage(new LoginMessage(user));
 	}
+
 	@PreDestroy
 	private void logout()
 	{
@@ -149,36 +159,37 @@ public class GroupCommuncation implements MessageAccepted, MessageOutOfOrder {
 		this.listeners = listeners;
 	}
 
-	private void initUser() { user = new User(datagramSocket.getLocalSocketAddress(), datagramSocket.getInetAddress()); }
+	private void initUser() { 
+		user = new User(datagramSocket.getLocalSocketAddress(), datagramSocket.getInetAddress()); 
+		listeners.onUserLogin(user);
+	}
 
 	private void addUser(User user)
 	{
 		GroupCommuncation.this.user.vectorClock.put(user.userId, user.vectorClock.get(user.userId));
-		listeners.onSendLoginListener(user);
 	}
 	
 	private void removeUser(User user)
 	{
 		GroupCommuncation.this.user.vectorClock.remove(user.userId);
-		listeners.onUserLogout(user);
+		vectorClockService.removeUser(user);
 	}
 
-	private boolean isSelf(User user) { return user.userId ==  GroupCommuncation.this.user.userId; }
+	private boolean isSelf(User user) { return user.userId == GroupCommuncation.this.user.userId; }
 
 	public User getUser() { return this.user; }
 
 	@Override
 	public void onMessageAccepted(ChatMessage chatMessage) {
-		this.user.vectorClock = chatMessage.user.vectorClock;
+		//this.user.vectorClock = chatMessage.user.vectorClock; 
+		this.user.vectorClock.put(chatMessage.user.userId, this.user.vectorClock.get(chatMessage.user.userId) + 1);
 		listeners.onIncomingChatMessage(chatMessage);
 		// check again
 		vectorClockService.checkChatMessages(user);
 	}
 
-
 	@Override
 	public void onOutOfOrder(ChatMessage chatMessage) {
-		System.out.println("Message out of order: " + VectorClockService.getVectorOrder(chatMessage.user));
-
+		listeners.onOutOfOrder(chatMessage);
 	}
 }
