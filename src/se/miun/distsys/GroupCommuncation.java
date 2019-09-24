@@ -81,8 +81,8 @@ public class GroupCommuncation implements MessageAccepted, MessageOutOfOrder {
 		private void handleMessage (Message message) {
 
 			if(message instanceof LoginMessage) {
-				if(!isSelf(message.user)) { // dont login yourself, youre already logged in :)
-					System.out.println(user.userId + "added" + message.user.userId);
+				 // dont login yourself, youre already logged in :)
+				if(!isSelf(message.user)) {
 					addUser(message.user);
 					listeners.onUserLogin(message.user);
 					broadcastMessage(new SendLoginMessage(user));

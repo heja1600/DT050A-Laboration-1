@@ -66,10 +66,15 @@ public class WindowProgram extends BaseProgram implements Listeners{
 		JButton btnSendChatMessage = new JButton("Send Chat Message");
 		btnSendChatMessage.addActionListener(this);
 		btnSendChatMessage.setActionCommand("send");
-		
 		frame.getContentPane().add(btnSendChatMessage);
+
+		JScrollPane userListScrollPane = new JScrollPane();
+		frame.getContentPane().add(userListScrollPane);
+		userListScrollPane.setViewportView(userList);
 		userList.setEditable(false);
 		frame.getContentPane().add(userList);
+	
+
 
 		frame.addWindowListener(new java.awt.event.WindowAdapter() {
 	        public void windowClosing(WindowEvent winEvt) {
