@@ -11,7 +11,7 @@ abstract public class BaseProgram implements Listeners {
 
 	protected GroupCommuncation gc = null; 
   List<BotProgram> bots = new ArrayList<>();
-  private int botInstances = 5;
+  private int botInstances = 0;
   protected Logger logger = new Logger();
 
   protected OutOfOrder outOfOrder = new OutOfOrder();
@@ -27,7 +27,7 @@ abstract public class BaseProgram implements Listeners {
     return "userId:" + user.userId;
   }
   protected void addBots() { 
-		for(int i = 0; i < botInstances; i++, bots.add(new BotProgram())); 
+		for(int i = 0; i < botInstances; i++, addBot()); 
   }
   protected void terminateBots() {
     for(BotProgram bot: bots)  bot.botIsRunning = false;
@@ -40,5 +40,11 @@ abstract public class BaseProgram implements Listeners {
     }
     outOfOrder.put(message.user.userId, outOfOrder.get(message.user.userId) + 1);
   }
-
+  protected void addBot() {
+     bots.add(new BotProgram());
+     botInstances++;
+  }
+  protected void removeBot() {
+    bots.remove(bots.size() - 1);
+  }
 }

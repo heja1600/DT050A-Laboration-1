@@ -59,6 +59,9 @@ public class WindowProgram extends BaseProgram implements Listeners{
 		scrollPane.setViewportView(txtpnChat);
 		txtpnChat.setEditable(false);	
 		txtpnChat.setText("--== Group Chat ==--");
+
+
+
 		
 		txtpnMessage.setText("Message");
 		frame.getContentPane().add(txtpnMessage);
@@ -68,13 +71,16 @@ public class WindowProgram extends BaseProgram implements Listeners{
 		btnSendChatMessage.setActionCommand("send");
 		frame.getContentPane().add(btnSendChatMessage);
 
+		JButton btnAddBot = new JButton("Add Bot");
+		btnAddBot.addActionListener(this);
+		btnAddBot.setActionCommand("addBot");
+		frame.getContentPane().add(btnAddBot);
+
 		JScrollPane userListScrollPane = new JScrollPane();
 		frame.getContentPane().add(userListScrollPane);
 		userListScrollPane.setViewportView(userList);
 		userList.setEditable(false);
-		frame.getContentPane().add(userList);
-	
-
+		userList.setText("--== User List ==--");
 
 		frame.addWindowListener(new java.awt.event.WindowAdapter() {
 	        public void windowClosing(WindowEvent winEvt) {
@@ -88,7 +94,10 @@ public class WindowProgram extends BaseProgram implements Listeners{
 	public void actionPerformed(ActionEvent event) {
 		if (event.getActionCommand().equalsIgnoreCase("send")) {
             gc.broadcastChatMessage(txtpnMessage.getText());
-		}		
+		}	
+		if (event.getActionCommand().equalsIgnoreCase("addBot")) {
+			addBot();
+		}
 	}
 	
 	@Override
