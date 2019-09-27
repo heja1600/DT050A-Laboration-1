@@ -76,6 +76,11 @@ public class WindowProgram extends BaseProgram implements Listeners{
 		btnAddBot.setActionCommand("addBot");
 		frame.getContentPane().add(btnAddBot);
 
+		JButton btnRemoveBot = new JButton("Remove Bot");
+		btnRemoveBot.addActionListener(this);
+		btnRemoveBot.setActionCommand("removeBot");
+		frame.getContentPane().add(btnRemoveBot);
+
 		JScrollPane userListScrollPane = new JScrollPane();
 		frame.getContentPane().add(userListScrollPane);
 		userListScrollPane.setViewportView(userList);
@@ -97,6 +102,9 @@ public class WindowProgram extends BaseProgram implements Listeners{
 		}	
 		if (event.getActionCommand().equalsIgnoreCase("addBot")) {
 			addBot();
+		}
+		if (event.getActionCommand().equalsIgnoreCase("removeBot")) {
+			removeBot();
 		}
 	}
 	

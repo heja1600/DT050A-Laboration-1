@@ -32,6 +32,7 @@ public class BotProgram extends Thread implements Listeners {
                 System.out.println("Thread failed to sleep, stacktrace: " + e.getStackTrace());
             }
         }
+        gc.shutdown();
     }
 
 

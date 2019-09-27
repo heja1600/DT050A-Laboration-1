@@ -30,7 +30,7 @@ abstract public class BaseProgram implements Listeners {
 		for(int i = 0; i < botInstances; i++, addBot()); 
   }
   protected void terminateBots() {
-    for(BotProgram bot: bots)  bot.botIsRunning = false;
+    for(int i = bots.size(); i > 0; i--, removeBot());
   }
 
   protected <T extends Message> void addOutOfOrder(T message) {
@@ -45,6 +45,9 @@ abstract public class BaseProgram implements Listeners {
      botInstances++;
   }
   protected void removeBot() {
-    bots.remove(bots.size() - 1);
+    if(bots.size() > 0) {
+      bots.get(bots.size() - 1).botIsRunning = false;
+      bots.remove(bots.size() - 1);
+    }
   }
 }
