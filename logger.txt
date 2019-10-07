@@ -1,0 +1,43 @@
+messageType: ChatMessage 
+ vectorOrder -> 
+user:7193 has:1
+user:8878 has:0
+
+messageType: ChatMessage 
+ vectorOrder -> 
+user:8491 has:1
+user:8878 has:0
+
+messageType: ChatMessage 
+ vectorOrder -> 
+user:8491 has:1
+user:4221 has:1
+user:8878 has:0
+
+messageType: ChatMessage 
+ vectorOrder -> 
+user:8491 has:2
+user:4221 has:1
+user:8878 has:0
+
+messageType: ChatMessage 
+ vectorOrder -> 
+user:8491 has:2
+user:4221 has:2
+user:8878 has:0
+
+messageType: ChatMessage 
+ vectorOrder -> 
+user:8491 has:3
+user:8878 has:0
+
+messageType: ChatMessage 
+ vectorOrder -> 
+user:9008 has:1
+user:8878 has:0
+
+messageType: ChatMessage 
+ vectorOrder -> 
+user:9008 has:2
+user:8878 has:0
+
