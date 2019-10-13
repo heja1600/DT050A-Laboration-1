@@ -5,6 +5,6 @@ import java.awt.event.ActionListener;
 public interface Listeners extends LoginListener, 
                                     LogoutListener, 
                                     ChatMessageListener, 
-                                    SendLoginListener, 
                                     ActionListener,
-                                    MessageOutOfOrder{ }
+                                    ElectionListener,
+                                    Shutdown{ }

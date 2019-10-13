@@ -54,11 +54,6 @@ public class BotProgram extends Thread implements Listeners {
 
     }
 
-    @Override
-    public void onSendLoginListener(User user) {
-        // TODO Auto-generated method stub
-
-    }
 
     @Override
     public void actionPerformed(ActionEvent e) {
@@ -66,9 +61,15 @@ public class BotProgram extends Thread implements Listeners {
 
     }
 
-    @Override
-    public void onOutOfOrder(ChatMessage chatMessage) {
-        // TODO Auto-generated method stub
+	@Override
+	public void onElectionChange(User user) {
+		// TODO Auto-generated method stub
+		
+	}
 
-    }
+	@Override
+	public void onShutdown(User user) {
+        
+	}
+
 }

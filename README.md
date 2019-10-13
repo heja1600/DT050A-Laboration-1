@@ -37,3 +37,8 @@ https://i.gyazo.com/383b85d773bd9b330946498f48f1db1f.mp4
 
 Log of all events from current Program can be seen in logger.txt while program is running
 ![image](https://user-images.githubusercontent.com/43444902/65540534-e4eecb80-df0b-11e9-9324-e12354a44d2c.png)
+
+
+## Laboration 3
+
+Not very well coded, not at all actually. But i was in a hurry to do the last laboration, i might work it out better later. Doesnt work for alot of bots lel :D

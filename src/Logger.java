@@ -14,7 +14,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.stream.Stream;
 
-import se.miun.distsys.VectorClockService;
 import se.miun.distsys.messages.ChatMessage;
 import se.miun.distsys.messages.LoginMessage;
 import se.miun.distsys.messages.LogoutMessage;
@@ -64,7 +63,7 @@ public class Logger {
         {
             e.printStackTrace();
         }
-        String string = contentBuilder.toString() + "messageType: "+ messageType + " \n vectorOrder -> " + VectorClockService.getVectorOrder(message.user) + "\n\n";
+        String string = contentBuilder.toString() + "messageType: "+ messageType + " \n vectorOrder -> " + ""+ "\n\n";
         try (
             BufferedReader reader = new BufferedReader(new StringReader(string));
             PrintWriter writer = new PrintWriter(new FileWriter(file));

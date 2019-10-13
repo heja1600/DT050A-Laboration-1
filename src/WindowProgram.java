@@ -4,12 +4,12 @@ import javax.swing.JFrame;
 import javax.swing.JList;
 
 import se.miun.distsys.GroupCommuncation;
-import se.miun.distsys.VectorClockService;
+import se.miun.distsys.listeners.ElectionListener;
 import se.miun.distsys.listeners.Listeners;
 import se.miun.distsys.messages.ChatMessage;
 import se.miun.distsys.messages.Message;
 import se.miun.models.User;
-import se.miun.models.VectorClock;
+import se.miun.models.Users;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -17,7 +17,6 @@ import javax.swing.JTextPane;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowEvent;
-import java.util.Set;
 
 import javax.swing.JScrollPane;
 
@@ -80,6 +79,12 @@ public class WindowProgram extends BaseProgram implements Listeners{
 		btnRemoveBot.addActionListener(this);
 		btnRemoveBot.setActionCommand("removeBot");
 		frame.getContentPane().add(btnRemoveBot);
+		
+		JButton btnElection = new JButton("new election");
+		btnElection.addActionListener(this);
+		btnElection.setActionCommand("election");
+		frame.getContentPane().add(btnElection);
+
 
 		JScrollPane userListScrollPane = new JScrollPane();
 		frame.getContentPane().add(userListScrollPane);
@@ -100,17 +105,20 @@ public class WindowProgram extends BaseProgram implements Listeners{
 		if (event.getActionCommand().equalsIgnoreCase("send")) {
             gc.broadcastChatMessage(txtpnMessage.getText());
 		}	
-		if (event.getActionCommand().equalsIgnoreCase("addBot")) {
+		else if (event.getActionCommand().equalsIgnoreCase("addBot")) {
 			addBot();
 		}
-		if (event.getActionCommand().equalsIgnoreCase("removeBot")) {
+		else if (event.getActionCommand().equalsIgnoreCase("removeBot")) {
 			removeBot();
+		}
+		else if (event.getActionCommand().equalsIgnoreCase("election")) {
+			gc.onLookForNewElectionTimeout();
 		}
 	}
 	
 	@Override
 	public void onIncomingChatMessage(ChatMessage chatMessage) {	
-		appendToTextChat(getUserInfo(chatMessage.user) + ": " + chatMessage.chat );
+		appendToTextChat(getUserInfo(chatMessage.user) + "("+ chatMessage.sequenceNumber + "): " + chatMessage.chat );
 		logger.log(chatMessage);
 		setUsers();
 	}
@@ -127,19 +135,14 @@ public class WindowProgram extends BaseProgram implements Listeners{
 		setUsers();
 	}
 
-	@Override
-	public void onSendLoginListener(User user) {
-		appendToTextChat("User excists in groupchat:" + user.userId);
-		setUsers();
-	}
 	private void setUsers()
 	{
 		String tmp = "";
-		for (VectorClock.Entry<Integer, Integer> entry : gc.getUser().vectorClock.entrySet()) {
+		for (Users.Entry<Integer, User> entry : gc.getUser().users.entrySet()) {
 			tmp += "user:";
 			tmp += entry.getKey();
-			tmp += ", sent (" + gc.getUser().vectorClock.get(entry.getKey()) + ")";
-			tmp += outOfOrder.containsKey(entry.getKey()) ? ", failed (" + outOfOrder.get(entry.getKey()) + ")" : "";
+			tmp += ", sent (" + gc.getUser().users.get(entry.getKey()).sentMessages + ")";
+			tmp += ", bully(" + (gc.getUser().users.get(entry.getKey()).bully ? "true" : "false") + ")";
 			tmp += "\n";
 		}
 		userList.setText(tmp);
@@ -151,8 +154,15 @@ public class WindowProgram extends BaseProgram implements Listeners{
 	}
 
 	@Override
-	public void onOutOfOrder(ChatMessage chatMessage) {
-		addOutOfOrder(chatMessage);
+	public void onElectionChange(User user) {
+		appendToTextChat("user: " + user.userId + "is the new elected leader");
 		setUsers();
 	}
+
+	@Override
+	public void onShutdown(User user) {
+		terminateBots();
+		
+	}
+
 }

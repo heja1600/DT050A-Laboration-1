@@ -5,6 +5,19 @@
             "name": "CodeLens (Launch) - BotProgram",
             "request": "launch",
             "mainClass": "BotProgram",
+            "projectName": "DT050A-Laboration-1_2a2a1bdb"
+        },
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - WindowProgram",
+            "request": "launch",
+            "mainClass": "WindowProgram"
+        },
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - BotProgram",
+            "request": "launch",
+            "mainClass": "BotProgram",
             "projectName": "DT050A-Laboration-1_1e3073f7"
         },
         {

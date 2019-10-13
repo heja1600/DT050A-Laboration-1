@@ -61,15 +61,20 @@ public class Program extends BaseProgram implements Listeners {
 		System.out.println("User joined groupchat:" + getUserInfo(user));
 	}
 
-	@Override
-	public void onSendLoginListener(User user) {
-		// TODO Auto-generated method stub
 
+
+	@Override
+	public void onElectionChange(User user) {
+		// TODO Auto-generated method stub
+		
 	}
 
-    @Override
-    public void onOutOfOrder(ChatMessage chatMessage) {
-        // TODO Auto-generated method stub
-        addOutOfOrder(chatMessage);
-    }
+
+
+	@Override
+	public void onShutdown(User user) {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

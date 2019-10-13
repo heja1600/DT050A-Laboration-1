@@ -4,30 +4,30 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
-import java.util.HashMap;
+
 
 import javax.annotation.PreDestroy;
-
-import javafx.util.Pair;
 import se.miun.distsys.listeners.Listeners;
 import se.miun.distsys.listeners.MessageAccepted;
-import se.miun.distsys.listeners.MessageOutOfOrder;
+import se.miun.distsys.messages.BullyElected;
+import se.miun.distsys.messages.BullyMessage;
 import se.miun.distsys.messages.ChatMessage;
+import se.miun.distsys.messages.ConfirmLoginMessage;
+import se.miun.distsys.messages.DenyElectionMessage;
+import se.miun.distsys.messages.ElectionMessage;
 import se.miun.distsys.messages.LoginMessage;
 import se.miun.distsys.messages.LogoutMessage;
 import se.miun.distsys.messages.Message;
 import se.miun.distsys.messages.MessageSerializer;
-import se.miun.distsys.messages.SendLoginMessage;
 import se.miun.models.Constants;
 import se.miun.models.User;
+import se.miun.models.Users;
 
 
 
 
-public class GroupCommuncation implements MessageAccepted, MessageOutOfOrder {
+public class GroupCommuncation implements MessageAccepted{
 	private int datagramSocketPort = Constants.groupChatPort;
-	private int serverPort = Constants.serverPort;
-
 	DatagramSocket datagramSocket = null;	
 	User user;
 	boolean runGroupCommuncation = true;	
@@ -35,8 +35,16 @@ public class GroupCommuncation implements MessageAccepted, MessageOutOfOrder {
 	//Listeners
 	Listeners listeners = null;
 
-	VectorClockService vectorClockService = new VectorClockService(this, this);
+	private MessageBuffer messageBuffer = new MessageBuffer(this);
 	
+	private Thread electionTimeout = null;
+	private Thread lookForTimeout = null;
+	
+	private Integer bullyMessages = null;
+	
+	private int totalMessagesSent = 0;
+	private int totalMessagesRecieved = 0;
+
 	public GroupCommuncation()
 	{
 		try {
@@ -79,47 +87,120 @@ public class GroupCommuncation implements MessageAccepted, MessageOutOfOrder {
 			}
 		}
 		private void handleMessage (Message message) {
+			if(message instanceof BullyElected) {
+				System.out.println("bully elected" + message.user.userId);
+				fixUserNewBully(message.user);
+				messageBuffer.reset();
+				listeners.onElectionChange(message.user);
+			}
+			else if(message instanceof LoginMessage) {
 
-			if(message instanceof LoginMessage) {
-				 // dont login yourself, youre already logged in :)
-				if(!isSelf(message.user)) {
+				if(!user.users.containsKey(message.user.userId)) {
 					addUser(message.user);
 					listeners.onUserLogin(message.user);
-					broadcastMessage(new SendLoginMessage(user));
 				}
+				ConfirmLoginMessage cmsg = new ConfirmLoginMessage(user);
+				if(user.bully) {
+					cmsg.sequenceNumber = bullyMessages;
+				}
+				broadcastMessage(cmsg);			
 			}
-			else if(message instanceof SendLoginMessage) {
-				// if you dont contain the user and its not yourself :)
-				if(!user.vectorClock.containsKey(message.user.userId) && !isSelf(message.user)) {
+			else if(message instanceof ConfirmLoginMessage) {
+				if(!user.users.containsKey(message.user.userId)) {
 					addUser(message.user);
-					listeners.onSendLoginListener(message.user);
+					listeners.onUserLogin(message.user);
+				}
+				if(message.user.bully) {
+					messageBuffer.reset();
+					messageBuffer.sequenceNumber = message.sequenceNumber + 1;
 				}
 			}
-
-			// to prohibit unregistred user to send messages
-			else if(user.vectorClock.containsKey(message.user.userId)) {
-		
-				if(message instanceof LogoutMessage) {
+			else if(message instanceof LogoutMessage) {
+				System.out.println("logoutmessagefrom" + message.user.userId+ ", contains ? " + user.users.containsKey(message.user.userId));
+				if(user.users.containsKey(message.user.userId)) {
 					removeUser(message.user);
 					listeners.onUserLogout(message.user);
 				}
-				
-				else if(message instanceof ChatMessage) {
-					vectorClockService.addMessage((ChatMessage) message);
-					vectorClockService.checkChatMessages(user);
+			}
+			else if(message instanceof ElectionMessage && !isSelf(message.user)) {
+				System.out.println("election" + message.user.userId + " " + user.userId);
+				if(message.user.userId < user.userId) {
+					System.out.println(user.userId + "denied " + message.user.userId);
+					broadcastMessage(new DenyElectionMessage(user));
+					sendElectionMessage(user);
 				}
-				else {
-					System.out.println("unknown message type");
+			}
+			else if(message instanceof DenyElectionMessage && !isSelf(message.user)) {
+				System.out.println("denyElection" + message.user.userId + " " + user.userId);
+				if(message.user.userId > user.userId) {
+					cancelElectionTimeout();
 				}
+			}
+			else if(message.fromBully) {
+				this.handleMessageFromBully(message);
+			}
+			else if(message instanceof ChatMessage && user.bully) {
+				System.out.println("user:" + user.userId +" is bully");
+				handleMessageByBully(message);
+			}
+		}
+		
+		private void handleMessageByBully(Message message) {
+			message.fromBully = true;
+			if(message instanceof ChatMessage) {
+				message.sequenceNumber = bullyMessages;
+				broadcastMessage((ChatMessage) message);
+				bullyMessages++;
+			}
+		}
+
+		private void handleMessageFromBully(Message message) {
+			if(isSelf(message.user))
+			{
+				cancelLookTimeout();
+			}
+			if(message instanceof ChatMessage) {
+				messageBuffer.addMessage((ChatMessage)message);
 			}
 		}
 	}
 
+	public void fixUserNewBully(User newBully) {
+		for(Users.Entry<Integer, User>  entry : user.users.entrySet()) {
+			if(newBully.userId == entry.getKey())
+			{
+				User user = entry.getValue();
+				user.bully = true;
+				user.users.put(user.userId, user);
+			}
+			else {
+				User user = entry.getValue();
+				user.bully = false;
+				user.users.put(user.userId, user);
+			}
+		}
+		if(isSelf(newBully)) {
+			user.bully = true;
+			bullyMessages = 0;
+		}
+	}
+	public Thread setTimeout(Runnable runnable, int delay){
+	        return new Thread(() -> {
+	            try {
+	                Thread.sleep(delay);
+	                runnable.run();
+	            }
+	            catch (Exception e){
+	                System.err.println(e);
+	            }
+	        });
+	}
+
 	public void broadcastChatMessage(String chat) {
+		setLookForNewElectionTimeout();
+		totalMessagesSent++;
 		ChatMessage chatMessage = new ChatMessage(user, chat);
-		VectorClockService.incremenetMessageIndex(chatMessage);
 		broadcastMessage(chatMessage);
-		user.vectorClock.put(user.userId, user.vectorClock.get(user.userId) - 1);
 	}
 
 	public <T extends Message> void broadcastMessage(T message) 
@@ -142,6 +223,38 @@ public class GroupCommuncation implements MessageAccepted, MessageOutOfOrder {
 			e.printStackTrace();
 		}
 	}
+	private boolean bullyFail() {
+		return (boolean) ((int) (Math.random() * 10000) < 1000);
+	}
+	private void onElectionTimeout()  {
+		System.out.println("new Election timeout" + user.userId);
+		BullyElected bullyElected = new BullyElected(user);
+		bullyElected.fromBully = true;
+		broadcastMessage(bullyElected);
+	}
+	
+	private void sendElectionMessage(User user) {
+		System.out.println("sendElectionMessage:" + user.userId);
+		electionTimeout = setTimeout(() -> onElectionTimeout(), 300);
+		electionTimeout.start();
+		broadcastMessage(new ElectionMessage(user));
+	}
+	private void setLookForNewElectionTimeout() {
+		cancelLookTimeout();
+		if(	lookForTimeout == null) {
+			lookForTimeout = setTimeout(() -> onLookForNewElectionTimeout(), 500);
+			lookForTimeout.start();
+		}
+		else {
+			System.out.println("lookForTImeOut is not null");
+		}
+	}
+	public void onLookForNewElectionTimeout() {
+
+		System.out.println("onLookForNewElectionTimeout success" + user.userId);
+		sendElectionMessage(user);
+	}
+	
 	private void login() 
 	{	
 		initUser();
@@ -166,30 +279,46 @@ public class GroupCommuncation implements MessageAccepted, MessageOutOfOrder {
 
 	private void addUser(User user)
 	{
-		GroupCommuncation.this.user.vectorClock.put(user.userId, user.vectorClock.get(user.userId));
+		GroupCommuncation.this.user.users.put(user.userId, user.users.get(user.userId));
 	}
 	
 	private void removeUser(User user)
 	{
-		GroupCommuncation.this.user.vectorClock.remove(user.userId);
-		vectorClockService.removeUser(user);
+		GroupCommuncation.this.user.users.remove(user.userId);
 	}
 
 	private boolean isSelf(User user) { return user.userId == GroupCommuncation.this.user.userId; }
 
 	public User getUser() { return this.user; }
-
-	@Override
-	public void onMessageAccepted(ChatMessage chatMessage) {
-		//this.user.vectorClock = chatMessage.user.vectorClock; 
-		this.user.vectorClock.put(chatMessage.user.userId, this.user.vectorClock.get(chatMessage.user.userId) + 1);
-		listeners.onIncomingChatMessage(chatMessage);
-		// check again
-		vectorClockService.checkChatMessages(user);
+	
+	@SuppressWarnings("deprecation")
+	public void cancelElectionTimeout() {
+		if(electionTimeout != null) {
+			electionTimeout.stop();
+		}
+		electionTimeout = null;
+	}
+	@SuppressWarnings("deprecation")
+	public void cancelLookTimeout(){
+		if(lookForTimeout!= null) {
+			lookForTimeout.stop();
+		}
+		lookForTimeout = null;
 	}
 
 	@Override
-	public void onOutOfOrder(ChatMessage chatMessage) {
-		listeners.onOutOfOrder(chatMessage);
+	public void onMessageAccepted(Message message) {
+
+		totalMessagesRecieved++;
+		if(user.users.containsKey(message.user.userId)) {
+			user.users.get(message.user.userId).sentMessages++;
+			
+			listeners.onIncomingChatMessage((ChatMessage) message);
+		}
+		if( totalMessagesSent - 5 > totalMessagesRecieved) {
+			totalMessagesSent = totalMessagesRecieved = 0;
+			this.onLookForNewElectionTimeout();
+		}
+		messageBuffer.checkForMessage();
 	}
 }
