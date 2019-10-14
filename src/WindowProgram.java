@@ -136,7 +136,8 @@ public class WindowProgram extends BaseProgram implements Listeners{
 			tmp += "user:";
 			tmp += entry.getKey();
 			tmp += ", sent (" + gc.getUser().users.get(entry.getKey()).sentMessages + ")";
-			tmp += ", bully(" + (gc.getUser().users.get(entry.getKey()).bully ? "true" : "false") + ")";
+			tmp += (gc.getUser().users.get(entry.getKey()).bully ? "(bully)" : "");
+			tmp += gc.isSelf(gc.getUser().users.get(entry.getKey())) ? "(self)" : "";
 			tmp += "\n";
 		}
 		userList.setText(tmp);

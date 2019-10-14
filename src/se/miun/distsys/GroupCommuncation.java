@@ -47,6 +47,9 @@ public class GroupCommuncation implements MessageAccepted{
 
 	private boolean higherCandidateFound = false;
 
+	private final int electionDelay = 300;
+	private final int lookForDelay = 1000;
+
 	public GroupCommuncation()
 	{
 		try {
@@ -95,6 +98,7 @@ public class GroupCommuncation implements MessageAccepted{
 				fixUserNewBully(message.user);
 				messageBuffer.reset();
 				listeners.onElectionChange(message.user);
+				cancelElectionTimeout();
 			}
 			else if(message instanceof LoginMessage) {
 
@@ -119,22 +123,20 @@ public class GroupCommuncation implements MessageAccepted{
 				}
 			}
 			else if(message instanceof LogoutMessage) {
-				System.out.println("logoutmessagefrom" + message.user.userId+ ", contains ? " + user.users.containsKey(message.user.userId));
 				if(user.users.containsKey(message.user.userId)) {
 					removeUser(message.user);
 					listeners.onUserLogout(message.user);
 				}
 			}
 			else if(message instanceof ElectionMessage && !isSelf(message.user) && !higherCandidateFound) {
-				System.out.println("election" + message.user.userId + " " + user.userId);
 				if(message.user.userId < user.userId) {
-					System.out.println(user.userId + "denied " + message.user.userId);
 					broadcastMessage(new DenyElectionMessage(user));
 					sendElectionMessage(user);
+				} else {
+					cancelElectionTimeout();
 				}
 			}
 			else if(message instanceof DenyElectionMessage && !isSelf(message.user)) {
-				System.out.println("denyElection" + message.user.userId + " " + user.userId);
 				if(message.user.userId > user.userId) {
 					higherCandidateFound = true;
 					cancelElectionTimeout();
@@ -237,28 +239,30 @@ public class GroupCommuncation implements MessageAccepted{
 			bullyElected.fromBully = true;
 			broadcastMessage(bullyElected);
 		} 
+		cancelElectionTimeout();
 	}
 	
 	private void sendElectionMessage(User user) {
 		System.out.println("sendElectionMessage:" + user.userId);
-		electionTimeout = setTimeout(() -> onElectionTimeout(), 300);
+		electionTimeout = setTimeout(() -> onElectionTimeout(), electionDelay);
 		electionTimeout.start();
 		broadcastMessage(new ElectionMessage(user));
 	}
 	private void setLookForNewElectionTimeout() {
-		cancelLookTimeout();
 		if(	lookForTimeout == null) {
-			lookForTimeout = setTimeout(() -> onLookForNewElectionTimeout(), 500);
+			cancelLookTimeout();
+			lookForTimeout = setTimeout(() -> onLookForNewElectionTimeout(), lookForDelay);
 			lookForTimeout.start();
 		}
 		else {
-			System.out.println("lookForTImeOut is not null");
+
 		}
 	}
 	public void onLookForNewElectionTimeout() {
 
 		System.out.println("onLookForNewElectionTimeout success" + user.userId);
 		sendElectionMessage(user);
+		cancelLookTimeout();
 	}
 	
 	private void login() 
@@ -293,7 +297,7 @@ public class GroupCommuncation implements MessageAccepted{
 		GroupCommuncation.this.user.users.remove(user.userId);
 	}
 
-	private boolean isSelf(User user) { return user.userId == GroupCommuncation.this.user.userId; }
+	public boolean isSelf(User user) { return user.userId == GroupCommuncation.this.user.userId; }
 
 	public User getUser() { return this.user; }
 	
