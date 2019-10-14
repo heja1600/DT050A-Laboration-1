@@ -8,6 +8,9 @@ import se.miun.models.Users;
 
 import javax.swing.JButton;
 import javax.swing.JTextPane;
+
+import javafx.geometry.Dimension2D;
+
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowEvent;
@@ -141,9 +144,9 @@ public class WindowProgram extends BaseProgram implements Listeners{
 			tmp += "\n";
 		}
 		userList.setText(tmp);
-		
+		frame.setTitle("Currently " + gc.getUser().users.size() + " users, " + bots.size() +" bots");
 	}
-	private void appendToTextChat(String chat) {
+	private void appendToTextChat(String chat) {		
 		txtpnChat.setText(txtpnChat.getText() +  "\n" + chat);	
 		txtpnChat.setCaretPosition(txtpnChat.getDocument().getLength());
 	}

@@ -69,7 +69,7 @@ public class BotProgram extends Thread implements Listeners {
 
 	@Override
 	public void onShutdown(User user) {
-        
+        botIsRunning = false;
 	}
 
 }

@@ -10,7 +10,6 @@ import javax.annotation.PreDestroy;
 import se.miun.distsys.listeners.Listeners;
 import se.miun.distsys.listeners.MessageAccepted;
 import se.miun.distsys.messages.BullyElected;
-import se.miun.distsys.messages.BullyMessage;
 import se.miun.distsys.messages.ChatMessage;
 import se.miun.distsys.messages.ConfirmLoginMessage;
 import se.miun.distsys.messages.DenyElectionMessage;
@@ -47,8 +46,10 @@ public class GroupCommuncation implements MessageAccepted{
 
 	private boolean higherCandidateFound = false;
 
-	private final int electionDelay = 300;
+	private final int electionDelay = 500;
 	private final int lookForDelay = 1000;
+
+	private boolean bullyIsChoosen = false;
 
 	public GroupCommuncation()
 	{
@@ -98,7 +99,9 @@ public class GroupCommuncation implements MessageAccepted{
 				fixUserNewBully(message.user);
 				messageBuffer.reset();
 				listeners.onElectionChange(message.user);
+				bullyIsChoosen = true;
 				cancelElectionTimeout();
+				cancelLookTimeout();
 			}
 			else if(message instanceof LoginMessage) {
 
@@ -110,7 +113,10 @@ public class GroupCommuncation implements MessageAccepted{
 				if(user.bully) {
 					cmsg.sequenceNumber = bullyMessages;
 				}
-				broadcastMessage(cmsg);			
+				broadcastMessage(cmsg);	
+				if(!isSelf(message.user)) {
+					sendElectionMessage(user);
+				}
 			}
 			else if(message instanceof ConfirmLoginMessage) {
 				if(!user.users.containsKey(message.user.userId)) {
@@ -127,8 +133,12 @@ public class GroupCommuncation implements MessageAccepted{
 					removeUser(message.user);
 					listeners.onUserLogout(message.user);
 				}
+				if(!isSelf(message.user)) {
+					sendElectionMessage(user);
+				}
 			}
 			else if(message instanceof ElectionMessage && !isSelf(message.user) && !higherCandidateFound) {
+				bullyIsChoosen = false;
 				if(message.user.userId < user.userId) {
 					broadcastMessage(new DenyElectionMessage(user));
 					sendElectionMessage(user);
@@ -146,7 +156,6 @@ public class GroupCommuncation implements MessageAccepted{
 				this.handleMessageFromBully(message);
 			}
 			else if(message instanceof ChatMessage && user.bully) {
-				System.out.println("user:" + user.userId +" is bully");
 				handleMessageByBully(message);
 			}
 		}
@@ -203,10 +212,12 @@ public class GroupCommuncation implements MessageAccepted{
 	}
 
 	public void broadcastChatMessage(String chat) {
-		setLookForNewElectionTimeout();
-		totalMessagesSent++;
-		ChatMessage chatMessage = new ChatMessage(user, chat);
-		broadcastMessage(chatMessage);
+		if(bullyIsChoosen) {
+			setLookForNewElectionTimeout();
+			totalMessagesSent++;
+			ChatMessage chatMessage = new ChatMessage(user, chat);
+			broadcastMessage(chatMessage);
+		}
 	}
 
 	public <T extends Message> void broadcastMessage(T message) 
@@ -244,6 +255,8 @@ public class GroupCommuncation implements MessageAccepted{
 	
 	private void sendElectionMessage(User user) {
 		System.out.println("sendElectionMessage:" + user.userId);
+		bullyIsChoosen = false;
+		cancelElectionTimeout();
 		electionTimeout = setTimeout(() -> onElectionTimeout(), electionDelay);
 		electionTimeout.start();
 		broadcastMessage(new ElectionMessage(user));
