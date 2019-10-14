@@ -1,17 +1,11 @@
 import java.awt.EventQueue;
 
 import javax.swing.JFrame;
-import javax.swing.JList;
-
-import se.miun.distsys.GroupCommuncation;
-import se.miun.distsys.listeners.ElectionListener;
 import se.miun.distsys.listeners.Listeners;
 import se.miun.distsys.messages.ChatMessage;
-import se.miun.distsys.messages.Message;
 import se.miun.models.User;
 import se.miun.models.Users;
 
-import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JTextPane;
 import java.awt.GridLayout;

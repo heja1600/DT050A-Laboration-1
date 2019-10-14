@@ -45,6 +45,8 @@ public class GroupCommuncation implements MessageAccepted{
 	private int totalMessagesSent = 0;
 	private int totalMessagesRecieved = 0;
 
+	private boolean higherCandidateFound = false;
+
 	public GroupCommuncation()
 	{
 		try {
@@ -88,6 +90,7 @@ public class GroupCommuncation implements MessageAccepted{
 		}
 		private void handleMessage (Message message) {
 			if(message instanceof BullyElected) {
+				higherCandidateFound = false;
 				System.out.println("bully elected" + message.user.userId);
 				fixUserNewBully(message.user);
 				messageBuffer.reset();
@@ -122,7 +125,7 @@ public class GroupCommuncation implements MessageAccepted{
 					listeners.onUserLogout(message.user);
 				}
 			}
-			else if(message instanceof ElectionMessage && !isSelf(message.user)) {
+			else if(message instanceof ElectionMessage && !isSelf(message.user) && !higherCandidateFound) {
 				System.out.println("election" + message.user.userId + " " + user.userId);
 				if(message.user.userId < user.userId) {
 					System.out.println(user.userId + "denied " + message.user.userId);
@@ -133,6 +136,7 @@ public class GroupCommuncation implements MessageAccepted{
 			else if(message instanceof DenyElectionMessage && !isSelf(message.user)) {
 				System.out.println("denyElection" + message.user.userId + " " + user.userId);
 				if(message.user.userId > user.userId) {
+					higherCandidateFound = true;
 					cancelElectionTimeout();
 				}
 			}
@@ -227,10 +231,12 @@ public class GroupCommuncation implements MessageAccepted{
 		return (boolean) ((int) (Math.random() * 10000) < 1000);
 	}
 	private void onElectionTimeout()  {
-		System.out.println("new Election timeout" + user.userId);
-		BullyElected bullyElected = new BullyElected(user);
-		bullyElected.fromBully = true;
-		broadcastMessage(bullyElected);
+		if(!higherCandidateFound) {
+			System.out.println("new Election timeout" + user.userId);
+			BullyElected bullyElected = new BullyElected(user);
+			bullyElected.fromBully = true;
+			broadcastMessage(bullyElected);
+		} 
 	}
 	
 	private void sendElectionMessage(User user) {
