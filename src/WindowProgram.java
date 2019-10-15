@@ -109,7 +109,7 @@ public class WindowProgram extends BaseProgram implements Listeners{
 			removeBot();
 		}
 		else if (event.getActionCommand().equalsIgnoreCase("election")) {
-			gc.onLookForNewElectionTimeout();
+			gc.onElectionTimeout();
 		}
 	}
 	

@@ -41,13 +41,10 @@ public class GroupCommuncation implements MessageAccepted{
 	
 	private Integer bullyMessages = null;
 	
-	private int totalMessagesSent = 0;
-	private int totalMessagesRecieved = 0;
-
 	private boolean higherCandidateFound = false;
 
 	private final int electionDelay = 500;
-	private final int lookForDelay = 1000;
+
 
 	private boolean bullyIsChoosen = false;
 
@@ -100,10 +97,8 @@ public class GroupCommuncation implements MessageAccepted{
 				messageBuffer.reset();
 				listeners.onElectionChange(message.user);
 				bullyIsChoosen = true;
-				cancelElectionTimeout();
-				cancelLookTimeout();
 			}
-			else if(message instanceof LoginMessage) {
+			else if(message instanceof LoginMessage && !isSelf(message.user)) {
 
 				if(!user.users.containsKey(message.user.userId)) {
 					addUser(message.user);
@@ -111,12 +106,17 @@ public class GroupCommuncation implements MessageAccepted{
 				}
 				ConfirmLoginMessage cmsg = new ConfirmLoginMessage(user);
 				if(user.bully) {
-					cmsg.sequenceNumber = bullyMessages;
+					if(message.user.userId > user.userId) {
+						broadcastMessage(new BullyElected(message.user));
+					}
+					else {
+						broadcastMessage(new BullyElected(user));
+					}
 				}
-				broadcastMessage(cmsg);	
 				if(!isSelf(message.user)) {
 					sendElectionMessage(user);
 				}
+				
 			}
 			else if(message instanceof ConfirmLoginMessage) {
 				if(!user.users.containsKey(message.user.userId)) {
@@ -136,9 +136,11 @@ public class GroupCommuncation implements MessageAccepted{
 				if(!isSelf(message.user)) {
 					sendElectionMessage(user);
 				}
+				if(message.user.bully) {
+					sendElectionMessage(user);
+				}
 			}
 			else if(message instanceof ElectionMessage && !isSelf(message.user) && !higherCandidateFound) {
-				bullyIsChoosen = false;
 				if(message.user.userId < user.userId) {
 					broadcastMessage(new DenyElectionMessage(user));
 					sendElectionMessage(user);
@@ -213,8 +215,6 @@ public class GroupCommuncation implements MessageAccepted{
 
 	public void broadcastChatMessage(String chat) {
 		if(bullyIsChoosen) {
-			setLookForNewElectionTimeout();
-			totalMessagesSent++;
 			ChatMessage chatMessage = new ChatMessage(user, chat);
 			broadcastMessage(chatMessage);
 		}
@@ -243,7 +243,7 @@ public class GroupCommuncation implements MessageAccepted{
 	private boolean bullyFail() {
 		return (boolean) ((int) (Math.random() * 10000) < 1000);
 	}
-	private void onElectionTimeout()  {
+	public void onElectionTimeout()  {
 		if(!higherCandidateFound) {
 			System.out.println("new Election timeout" + user.userId);
 			BullyElected bullyElected = new BullyElected(user);
@@ -261,23 +261,6 @@ public class GroupCommuncation implements MessageAccepted{
 		electionTimeout.start();
 		broadcastMessage(new ElectionMessage(user));
 	}
-	private void setLookForNewElectionTimeout() {
-		if(	lookForTimeout == null) {
-			cancelLookTimeout();
-			lookForTimeout = setTimeout(() -> onLookForNewElectionTimeout(), lookForDelay);
-			lookForTimeout.start();
-		}
-		else {
-
-		}
-	}
-	public void onLookForNewElectionTimeout() {
-
-		System.out.println("onLookForNewElectionTimeout success" + user.userId);
-		sendElectionMessage(user);
-		cancelLookTimeout();
-	}
-	
 	private void login() 
 	{	
 		initUser();
@@ -332,15 +315,10 @@ public class GroupCommuncation implements MessageAccepted{
 	@Override
 	public void onMessageAccepted(Message message) {
 
-		totalMessagesRecieved++;
 		if(user.users.containsKey(message.user.userId)) {
 			user.users.get(message.user.userId).sentMessages++;
 			
 			listeners.onIncomingChatMessage((ChatMessage) message);
-		}
-		if( totalMessagesSent - 5 > totalMessagesRecieved) {
-			totalMessagesSent = totalMessagesRecieved = 0;
-			this.onLookForNewElectionTimeout();
 		}
 		messageBuffer.checkForMessage();
 	}
