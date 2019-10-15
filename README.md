@@ -1,26 +1,14 @@
-# Laboration 1
-
-
-Netbeans project 
-
-
-# Laboration 1
-
-In this first laboration you are expected to learn how to program UDP broadcast socket programming in Java, as well as understand the basis for this whole laboratory work.
-
-You will be given a basic skeleton for the program which you will need to extend to also do the following:
-
-[x] Choose your own port, so your program will not collide with other students programs on the same network.
-[x] Implement a Join message, that is sent from a client when the client starts.
-[x] When another client receives the Join message, it shall add the user to its list of active clients.
-[x] Implement a Leave message, that is sent from a client when the client starts. (probably means leaves)
-[x] When another client receives the Leave message, it shall remove the user fromt its list of active clients.
-[x] Remember that the newly joined client should also get a list of all active client from the older clients.
-[x] Adjust the user interface according to your own taste.
-
-
 
 # Laboration 2
+
+
+```
+Laboration 2
+In the second laboration you are expected to implement causal ordring in the chat system. Basically, you should use your basic implementation from Laboration 1, but now implement causal ordering (vector clocks) for your clients. Making so each client individually keeps track of the clock of each other client using a vector style clock.
+
+Implement causal ordering using vector clocks.
+Never display a message on the screen that is ahead of or out of order.
+```
 
 UDP chat with implemented Casual Order VectorClock 
 - Only display message that is in order
