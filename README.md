@@ -1,7 +1,7 @@
 
 ## Laboration 3
 
-Not very well coded, not at all actually. But i was in a hurry to do the last laboration, i might work it out better later. Doesnt work for alot of bots lel :D
+Not very well coded, not at all actually. But i was in a hurry to do the last laboration, i might work it out better later.
 
 
 
